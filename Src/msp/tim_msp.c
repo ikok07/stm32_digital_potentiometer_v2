@@ -6,12 +6,12 @@
 #include "stm32l0xx_hal.h"
 
 #define ENC1_PORT                   GPIOA
-#define ENC1_A_PIN                  0
-#define ENC1_B_PIN                  1
+#define ENC1_A_PIN                  GPIO_PIN_0
+#define ENC1_B_PIN                  GPIO_PIN_1
 
 #define ENC2_PORT                   GPIOA
-#define ENC2_A_PIN                  6
-#define ENC2_B_PIN                  7
+#define ENC2_A_PIN                  GPIO_PIN_6
+#define ENC2_B_PIN                  GPIO_PIN_7
 
 
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
@@ -46,7 +46,7 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim) {
     GPIO_InitTypeDef GPIO_Config = {
         .Mode = GPIO_MODE_AF_PP,
         .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_LOW
+        .Speed = GPIO_SPEED_LOW,
     };
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -55,6 +55,7 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim) {
         __HAL_RCC_TIM2_CLK_ENABLE();
 
         GPIO_Config.Pin = ENC1_A_PIN;
+        GPIO_Config.Alternate = GPIO_AF2_TIM2;
         HAL_GPIO_Init(ENC1_PORT, &GPIO_Config);
 
         GPIO_Config.Pin = ENC1_B_PIN;
@@ -63,6 +64,7 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim) {
         __HAL_RCC_TIM22_CLK_ENABLE();
 
         GPIO_Config.Pin = ENC2_A_PIN;
+        GPIO_Config.Alternate = GPIO_AF5_TIM22;
         HAL_GPIO_Init(ENC2_PORT, &GPIO_Config);
 
         GPIO_Config.Pin = ENC2_B_PIN;

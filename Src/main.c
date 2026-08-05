@@ -23,6 +23,9 @@ int main(void) {
         while (1);
     }
 
+    // Initialize error handling
+    ERROR_Init();
+
     // Setup power and clocks
     if ((err = POWER_Init()) != HAL_OK) {
         ERROR_TriggerFatal();

@@ -5,8 +5,8 @@
 #include "stm32l0xx_hal.h"
 
 #define I2C_PORT                            GPIOA
-#define I2C_SCL_PIN                         9
-#define I2C_SDA_PIN                         10
+#define I2C_SCL_PIN                         GPIO_PIN_9
+#define I2C_SDA_PIN                         GPIO_PIN_10
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
     __HAL_RCC_GPIOA_CLK_ENABLE();

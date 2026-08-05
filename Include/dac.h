@@ -13,8 +13,8 @@
 #define DAC_I2C_CONN_TIMEOUT                1000
 
 #define DAC_CHCTRL_PORT                     GPIOB
-#define DAC_CHCTRL_1_PIN                    0
-#define DAC_CHCTRL_2_PIN                    1
+#define DAC_CHCTRL_1_PIN                    GPIO_PIN_0
+#define DAC_CHCTRL_2_PIN                    GPIO_PIN_1
 
 #define DAC_SHVAL_TIMEOUT                   1000
 #define DAC_VALUE_SHVAL_QUEUE_SIZE          1               // One subscriber - the task which operates the channel
