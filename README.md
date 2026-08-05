@@ -36,9 +36,7 @@ Two rotary encoders each drive an independent 16-bit DAC channel through a preci
   - [Clock tree and timebases](#clock-tree-and-timebases)
   - [Error handling](#error-handling)
 - [Libraries written for this project](#libraries-written-for-this-project)
-- [Building and flashing](#building-and-flashing)
 - [Repository layout](#repository-layout)
-- [Status and next steps](#status-and-next-steps)
 
 ---
 
