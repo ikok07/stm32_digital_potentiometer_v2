@@ -1,0 +1,12 @@
+//
+// Created by Kok on 5/12/26.
+//
+
+#ifndef STM32_DIGITAL_POTENTIOMETER_V2_ERROR_H
+#define STM32_DIGITAL_POTENTIOMETER_V2_ERROR_H
+
+void ERROR_Init();
+void ERROR_Trigger();
+void ERROR_TriggerFatal();
+
+#endif //STM32_DIGITAL_POTENTIOMETER_V2_ERROR_H

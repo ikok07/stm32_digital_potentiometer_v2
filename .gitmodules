@@ -16,3 +16,6 @@
 [submodule "lib/shared_values"]
 	path = lib/shared_values
 	url = https://github.com/ikok07/stm32_shared_values.git
+[submodule "digital_potentiometer_v2_pcb"]
+	path = digital_potentiometer_v2_pcb
+	url = https://github.com/ikok07/digital_potentiometer_v2_pcb.git

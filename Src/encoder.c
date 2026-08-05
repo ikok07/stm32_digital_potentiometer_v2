@@ -5,7 +5,7 @@
 #include "encoder.h"
 
 #include "app_state.h"
-#include "log.h"
+#include "error.h"
 #include "tasks_common.h"
 
 #define ENCODER_A_FILTER                0xF             // 0x0 - 0xF
@@ -14,12 +14,6 @@
 #define ENCODER_MAX_VALUE               (0xFFFF * 4)     // Each step counts as 4 incs/decs
 #define ENCODER_MIN_VALUE               0
 #define ENCODER_TIM_PERIOD              0xFFFF          // Max 16-bit value
-
-#define ENCODER_RESET_PORT              GPIOB
-#define ENCODER_1_RESET_PIN             4
-#define ENCODER_2_RESET_PIN             5
-
-#define ENCODER_NOTIFY_RESET            (1 << 0)
 
 #define ENCODER_UPDATE_DAC_TIMEOUT      1000
 
@@ -48,9 +42,6 @@ HAL_StatusTypeDef ENCODER_Init() {
     };
     gAppState.htim2 = TIM_Handle;
 
-    TIM_Handle.Instance = TIM22;
-    gAppState.htim22 = TIM_Handle;
-
     TIM_Encoder_InitTypeDef TIM_Config = {
         .EncoderMode = TIM_ENCODERMODE_TI12,
         .IC1Polarity = TIM_ICPOLARITY_RISING,
@@ -67,6 +58,9 @@ HAL_StatusTypeDef ENCODER_Init() {
         return hal_err;
     }
 
+    TIM_Handle.Instance = TIM22;
+    gAppState.htim22 = TIM_Handle;
+
     if ((hal_err = HAL_TIM_Encoder_Init(&gAppState.htim22, &TIM_Config))) {
         return hal_err;
     }
@@ -74,8 +68,8 @@ HAL_StatusTypeDef ENCODER_Init() {
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
     HAL_NVIC_EnableIRQ(TIM22_IRQn);
 
-    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
-    HAL_NVIC_SetPriority(TIM22_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM2_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(TIM22_IRQn, 5, 0);
 
     if ((hal_err = HAL_TIM_Encoder_Start_IT(&gAppState.htim2, TIM_CHANNEL_ALL)) != HAL_OK) {
         return hal_err;
@@ -162,8 +156,7 @@ void handle_new_enc_value(TIM_HandleTypeDef *htim, SHVAL_HandleTypeDef *hshval, 
     SHVAL_ErrorTypeDef shval_err = SHVAL_ERROR_OK;
     // encValue / 4 => one encoder step is four pulses
     if ((shval_err = SHVAL_SetValue(hshval, *EncValue / 4, ENCODER_UPDATE_DAC_TIMEOUT)) != SHVAL_ERROR_OK) {
-        LOGGER_LogF(LOGGER_LEVEL_ERROR, "Failed to set DAC shared value! Error: %d", shval_err);
-        LOGGER_LogBasic(0);
+        ERROR_Trigger();
     };
 }
 
@@ -181,7 +174,7 @@ void setup_reset_buttons() {
     HAL_GPIO_Init(ENCODER_RESET_PORT, &GPIO_Config);
 
     HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
-    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 5, 0);
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
@@ -189,13 +182,5 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
         xTaskNotify(gAppState.Tasks.Enc1Task.OsTask, 0, eNoAction);
     } else if (htim->Instance == TIM22) {
         xTaskNotify(gAppState.Tasks.Enc2Task.OsTask, 0, eNoAction);
-    }
-}
-
-void HAL_GPIO_EXTI_IRQHandler(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == ENCODER_1_RESET_PIN) {
-        xTaskNotify(gAppState.Tasks.Enc1Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
-    } else if (GPIO_Pin == ENCODER_2_RESET_PIN) {
-        xTaskNotify(gAppState.Tasks.Enc2Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
     }
 }

@@ -32,8 +32,8 @@ typedef struct {
     APP_SharedValues SharedValues;
     I2C_HandleTypeDef hi2c;
     DACx050x_HandleTypeDef hdac;
-    UART_HandleTypeDef huart;
     TIM_HandleTypeDef htim2;
+    TIM_HandleTypeDef htim21;
     TIM_HandleTypeDef htim22;
 } APP_State;
 

@@ -8,18 +8,14 @@
 #include "cmsis_gcc.h"
 #include "dac.h"
 #include "encoder.h"
+#include "error.h"
 #include "i2c.h"
-#include "log.h"
-#include "logging.h"
 #include "power.h"
 #include "stm32l0xx_hal.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName ) {
-    LOGGER_LogBasic(1);
-    while (1) {}
+    ERROR_TriggerFatal();
 }
-
-// TODO: Add encoder reset handlers
 
 int main(void) {
     uint8_t err;
@@ -27,27 +23,24 @@ int main(void) {
         while (1);
     }
 
-    // Initialize logger
-    LOGGING_Init();
-
     // Setup power and clocks
     if ((err = POWER_Init()) != HAL_OK) {
-        LOGGER_Log(LOGGER_LEVEL_FATAL, "Failed to configure MCU's power and clocks!");
+        ERROR_TriggerFatal();
     }
 
     // Setup I2C Bus
     if ((err = I2C_Init()) != 0) {
-        LOGGER_Log(LOGGER_LEVEL_FATAL, "Failed to configure MCU's I2C peripheral!");
+        ERROR_TriggerFatal();
     }
 
     // Initialize DAC
     if ((err = DAC_Init()) != 0) {
-        LOGGER_Log(LOGGER_LEVEL_FATAL, "Failed to configure the external DAC!");
+        ERROR_TriggerFatal();
     }
 
     // Initialize encoder
     if ((err = ENCODER_Init()) != HAL_OK) {
-        LOGGER_Log(LOGGER_LEVEL_FATAL, "Failed to configure the encoder timers!");
+        ERROR_TriggerFatal();
     }
 
     // Start DAC tasks
@@ -63,5 +56,9 @@ int main(void) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == DAC_CHCTRL_1_PIN || GPIO_Pin == DAC_CHCTRL_2_PIN) {
         DAC_HandleChanCtrlEvent();
+    } else if (GPIO_Pin == ENCODER_1_RESET_PIN) {
+        xTaskNotify(gAppState.Tasks.Enc1Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
+    } else if (GPIO_Pin == ENCODER_2_RESET_PIN) {
+        xTaskNotify(gAppState.Tasks.Enc2Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
     }
 }

@@ -7,7 +7,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "app_state.h"
-#include "log.h"
+#include "error.h"
 #include "stm32l0xx_hal.h"
 #include "tasks_common.h"
 
@@ -40,18 +40,19 @@ uint8_t DAC_Init() {
     GPIO_PinState ch1_en = HAL_GPIO_ReadPin(DAC_CHCTRL_PORT, DAC_CHCTRL_1_PIN);
     GPIO_PinState ch2_en = HAL_GPIO_ReadPin(DAC_CHCTRL_PORT, DAC_CHCTRL_2_PIN);
 
+    // Setup for max voltage - VREF
     gAppState.hdac = (DACx050x_HandleTypeDef){
         .Config = {
             .DeviceI2CAddress = DAC_I2C_ADDRESS,
-            .DacAEnabled = 0,
-            .DacBEnabled = 0,
-            .BufferAGain = 2, // MAX 5V (when external VREF is 2.5V)
-            .BufferBGain = 2, // MAX 5V (when external VREF is 2.5V)
-            .RefDivider = 0,
+            .DacAEnabled = ch1_en,
+            .DacBEnabled = ch2_en,
+            .BufferAGain = DAC_X050X_GAIN_2,
+            .BufferBGain = DAC_X050X_GAIN_2,
+            .RefDivider = DAC_X050X_REF_DIV_2,
             .DacABroadcastEnabled = 0,
             .DacBBroadcastEnabled = 0,
-            .DacASyncEnabled = ch1_en,
-            .DacBSyncEnabled = ch2_en,
+            .DacASyncEnabled = 0,
+            .DacBSyncEnabled = 0,
             .InternalReferenceEnabled = 0,
         },
         .Callbacks = {
@@ -110,6 +111,9 @@ void DAC_StartTasks() {
     SCHEDULER_Create(&gAppState.Tasks.DacATask);
     SCHEDULER_Create(&gAppState.Tasks.DacBTask);
     SCHEDULER_Create(&gAppState.Tasks.DacChanCtrlTask);
+
+    // Sync currently active channels
+    DAC_HandleChanCtrlEvent();
 }
 
 void DAC_HandleChanCtrlEvent() {
@@ -206,5 +210,5 @@ uint8_t i2c_read(uint8_t DeviceAddress, uint8_t RegisterAddress, uint16_t *RegCo
 
 void dac_err_log(DACx050x_ErrorTypeDef DacError, uint8_t SpecificErrorCode) {
     // Any error would be fatal to the application
-    LOGGER_LogF(LOGGER_LEVEL_FATAL, "DAC Error: %d; Specific error code: %d", DacError, SpecificErrorCode);
+    ERROR_TriggerFatal();
 }

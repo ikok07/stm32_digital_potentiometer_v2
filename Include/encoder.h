@@ -7,6 +7,12 @@
 
 #include "stm32l0xx_hal.h"
 
+#define ENCODER_RESET_PORT              GPIOB
+#define ENCODER_1_RESET_PIN             4
+#define ENCODER_2_RESET_PIN             5
+
+#define ENCODER_NOTIFY_RESET            (1 << 0)
+
 HAL_StatusTypeDef ENCODER_Init();
 void ENCODER_StartTasks();
 
